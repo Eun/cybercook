@@ -9,10 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       -
+        name: Checkout Code
+        uses: actions/checkout@v3.5.3
+      -
         name: Regenerate modules.json
         run: node build_modules.js
       -
-        name: check for changes
+        name: Check for changes
         run: |
           if git diff --exit-code; then
             echo "::set-env name=changes_exist::false"
