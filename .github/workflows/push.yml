@@ -1,0 +1,42 @@
+# this workflow will run on all pushes.
+on:
+  push:
+
+name: "push"
+jobs:
+
+  build-modules:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Regenerate modules.json
+        run: node build_modules.js
+      -
+        name: Commit files
+        run: |
+          git add modules.json
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git commit -m "Generated modules.json"
+      -
+        name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: true
+
+
+  # draft your next release notes as pull requests are merged into "master"
+  # the configuration is at /.github/release-drafter.yml.
+  update_release_draft:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: release-drafter/release-drafter@v5
+        if: github.ref == 'refs/heads/${{github.master_branch}}'
+        with:
+          config-name: release-drafter.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
