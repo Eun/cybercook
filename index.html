@@ -1,8 +1,9 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cybercook</title>
     <script src="//unpkg.com/alpinejs" defer></script>
     <script src="//cdn.tailwindcss.com"></script>
     <script>
@@ -145,12 +146,13 @@
     <body class="w-screen h-screen bg-zinc-400 box-sizing" x-data="data">
     <main class="flex h-full w-full p-2 space-x-2">
         <div class="resize-x overflow-auto w-[20%] p-2 bg-stone-900 text-white">
+            <h1 class="border-b-2 text-2xl cursor-default mb-4">Modules</h1>
             <input type="text" x-model="search" class="bg-stone-500 w-full" placeholder="filter...">
             <template x-for="module in modules">
                 <template x-if="search == '' || module.name.toLowerCase().indexOf(search.toLowerCase()) != -1 || module.categories.find(x => x.toLowerCase().indexOf(search.toLowerCase()) != -1)">
                     <div
-                        class="cursor-pointer"
-                        :class="{'cursor-grab': dragging}"
+                        class="cursor-grab"
+                        :class="{'cursor-grabbing': dragging}"
                         @dragstart.self="
                             dragging = true;
                             event.dataTransfer.effectAllowed='move';
@@ -166,8 +168,9 @@
         </div>
         <div class="resize-x overflow-auto w-[40%] p-2 flex flex-col bg-stone-900 text-white">
             <div class="flex flex-col flex-auto">
+                <h1 class="border-b-2 text-2xl cursor-default">Cookbook</h1>
                 <div
-                     class="h-4 bg-stone-900"
+                     class="h-4 bg-stone-900 flex items-center"
                      :class="{
                         'bg-orange-100': adding['start'] || adding['end'] && cookbook.length == 0,
                         'bg-orange-200': dragging,
@@ -176,7 +179,11 @@
                      @drop="adding['start'] = false"
                      @drop.prevent="addModuleToCookbook('start', event.dataTransfer.getData('text/plain'))"
                      @dragover.prevent="adding['start'] = true"
-                     @dragleave.prevent="adding['start'] = false"></div>
+                     @dragleave.prevent="adding['start'] = false">
+                    <template x-if="cookbook.length == 0">
+                        <div class="text-center text-xl flex-auto cursor-default">Drag modules here</div>
+                    </template>
+                </div>
                 <template x-for="module in cookbook">
                     <div class="flex flex-col odd:bg-stone-700 even:bg-stone-600">
                         <div class="space-y-2 p-2">
@@ -246,10 +253,12 @@
             </div>
         </div>
         <div class="flex flex-col grow space-y-2">
-            <div class="resize-y overflow-auto h-[50%] p-2 bg-stone-900">
+            <div class="resize-y overflow-auto h-[50%] p-2 bg-stone-900 flex flex-col">
+                <h1 class="border-b-2 text-2xl cursor-default mb-4 text-white">Input</h1>
                 <textarea class="w-full h-full resize-none bg-stone-900 text-white border-none font-mono" x-model="input"></textarea>
             </div>
-            <div class="grow bg-stone-900 p-2">
+            <div class="grow bg-stone-900 p-2 flex flex-col">
+                <h1 class="border-b-2 text-2xl cursor-default mb-4 text-white">Output</h1>
                 <textarea class="w-full h-full resize-none bg-stone-900 text-white border-none font-mono" x-model="output"></textarea>
            </div>
        </div>
