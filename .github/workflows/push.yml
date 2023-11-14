@@ -16,15 +16,16 @@ jobs:
         run: node build_modules.js
       -
         name: Check for changes
+        id: check_for_changes
         run: |
           if git diff --exit-code; then
-            echo "::set-env name=changes_exist::false"
+            echo "changes_exist=false" >> "$GITHUB_OUTPUT"
           else
-            echo "::set-env name=changes_exist::true"
+            echo "changes_exist=true" >> "$GITHUB_OUTPUT"
           fi
       -
         name: Commit files
-        if: ${{ env.changes_exist == 'true' }}
+        if: ${{ steps.check_for_changes.outputs.changes_exist == 'true' }}
         run: |
           git add modules.json
           git config --local user.email "actions@github.com"
@@ -32,7 +33,7 @@ jobs:
           git commit -m "Generated modules.json"
       -
         name: Push changes
-        if: ${{ env.changes_exist == 'true' }}
+        if: ${{ steps.check_for_changes.outputs.changes_exist == 'true' }}
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
