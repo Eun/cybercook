@@ -1,6 +1,6 @@
 module = {
     name: 'suffix',
-    description: 'suffix a string',
+    description: 'suffix the input with a given string',
     categories: ['string'],
     properties: [
         {
