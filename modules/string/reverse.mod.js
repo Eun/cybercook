@@ -9,6 +9,5 @@ module = {
             newText.unshift(text.charAt(i))
         }
         return newText.join("");
-
     }
 }
