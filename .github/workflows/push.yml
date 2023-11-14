@@ -2,9 +2,13 @@
 on:
   push:
 
+permissions:
+  pull-requests: write
+  issues: write
+  repository-projects: write
+
 name: "push"
 jobs:
-
   build-modules:
     runs-on: ubuntu-latest
     steps:
