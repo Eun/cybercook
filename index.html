@@ -167,10 +167,10 @@
             </template>
         </div>
         <div class="resize-x overflow-auto w-[40%] p-2 flex flex-col bg-stone-900 text-white">
-            <div class="flex flex-col flex-auto">
-                <h1 class="border-b-2 text-2xl cursor-default">Cookbook</h1>
+            <h1 class="border-b-2 text-2xl cursor-default">Cookbook</h1>
+            <div class="flex flex-col flex-auto overflow-scroll">
                 <div
-                     class="h-4 bg-stone-900 flex items-center"
+                     class="min-h-[1rem] bg-stone-900 flex items-center"
                      :class="{
                         'bg-orange-100': adding['start'] || adding['end'] && cookbook.length == 0,
                         'bg-orange-200': dragging,
@@ -248,7 +248,7 @@
                     @dragover.prevent="adding['end'] = true"
                     @dragleave.prevent="adding['end'] = false"></div>
             </div>
-            <div class="flex flex-col items-center">
+            <div class="flex flex-col items-center mt-2">
                 <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" @click="runCookbook()">Run</button>
             </div>
         </div>
