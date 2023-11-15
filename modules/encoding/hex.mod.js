@@ -1,6 +1,6 @@
 module = {
     name: 'hex',
-    description: 'encode to hex',
+    description: 'encode input to hex',
     categories: ['hash', 'hex'],
     properties: [],
     run: function (text){
