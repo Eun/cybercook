@@ -13,7 +13,6 @@ jobs:
       -
         name: Checkout Code
         uses: actions/checkout@v4.1.1
-      - run: git status
       -
         name: Regenerate modules.json
         run: node build_modules.js
