@@ -14,33 +14,33 @@ jobs:
         name: Checkout Code
         uses: actions/checkout@v4.1.1
       - run: git status
-#      -
-#        name: Regenerate modules.json
-#        run: node build_modules.js
-#      -
-#        name: Check for changes
-#        id: check_for_changes
-#        run: |
-#          if git diff --exit-code; then
-#            echo "changes_exist=false" >> "$GITHUB_OUTPUT"
-#          else
-#            echo "changes_exist=true" >> "$GITHUB_OUTPUT"
-#          fi
-#      -
-#        name: Commit files
-#        if: ${{ steps.check_for_changes.outputs.changes_exist == 'true' }}
-#        run: |
-#          git add modules.json
-#          git config --local user.email "actions@github.com"
-#          git config --local user.name "GitHub Actions"
-#          git commit -m "Generated modules.json"
-#      -
-#        name: Push changes
-#        if: ${{ steps.check_for_changes.outputs.changes_exist == 'true' }}
-#        uses: ad-m/github-push-action@master
-#        with:
-#          github_token: ${{ secrets.GITHUB_TOKEN }}
-#          force: true
+      -
+        name: Regenerate modules.json
+        run: node build_modules.js
+      -
+        name: Check for changes
+        id: check_for_changes
+        run: |
+          if git diff --exit-code; then
+            echo "changes_exist=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changes_exist=true" >> "$GITHUB_OUTPUT"
+          fi
+      -
+        name: Commit files
+        if: ${{ steps.check_for_changes.outputs.changes_exist == 'true' }}
+        run: |
+          git add modules.json
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git commit -m "Generated modules.json"
+      -
+        name: Push changes
+        if: ${{ steps.check_for_changes.outputs.changes_exist == 'true' }}
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
 
 
   # draft your next release notes as pull requests are merged into "master"
