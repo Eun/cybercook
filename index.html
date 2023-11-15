@@ -167,7 +167,13 @@
             </template>
         </div>
         <div class="resize-x overflow-auto w-[40%] p-2 flex flex-col bg-stone-900 text-white">
-            <h1 class="border-b-2 text-2xl cursor-default">Cookbook</h1>
+            <div class="flex flex-row border-b-2 text-2xl cursor-default text-white">
+                <div>Cookbook</div>
+                <div class="flex flex-row grow justify-end space-x-2">
+                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm" title="Run" @click="runCookbook()">Run ▶</button>
+                </div>
+            </div>
+
             <div class="flex flex-col flex-auto overflow-scroll">
                 <div
                      class="min-h-[1rem] bg-stone-900 flex items-center"
@@ -249,7 +255,7 @@
                     @dragleave.prevent="adding['end'] = false"></div>
             </div>
             <div class="flex flex-col items-center mt-2">
-                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" @click="runCookbook()">Run</button>
+                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" @click="runCookbook()">Run ▶</button>
             </div>
         </div>
         <div class="flex flex-col grow space-y-2">
@@ -258,7 +264,14 @@
                 <textarea class="w-full h-full resize-none bg-stone-900 text-white border-none font-mono" x-model="input"></textarea>
             </div>
             <div class="grow bg-stone-900 p-2 flex flex-col">
-                <h1 class="border-b-2 text-2xl cursor-default mb-4 text-white">Output</h1>
+                <div class="flex flex-row border-b-2 text-2xl cursor-default mb-4 text-white">
+                    <div>Output</div>
+                    <div class="flex flex-row grow justify-end space-x-2">
+                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm" title="Copy output to clipboard" @click="navigator.clipboard.writeText(output)">📋</button>
+                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm" title="Replace input with output" @click="input = output">▲</button>
+
+                    </div>
+                </div>
                 <textarea class="w-full h-full resize-none bg-stone-900 text-white border-none font-mono" x-model="output"></textarea>
            </div>
        </div>
