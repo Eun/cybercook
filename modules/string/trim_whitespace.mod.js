@@ -41,7 +41,7 @@ module = {
             text = text.trimStart();
         }
         if (end) {
-            text = text.trimStart();
+            text = text.trimEnd();
         }
         return text;
     }

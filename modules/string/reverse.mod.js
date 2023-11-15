@@ -5,7 +5,7 @@ module = {
     properties: [],
     run: function (text) {
         let newText = []
-        for (var i = 0; i < text.length; i++) {
+        for (let i = 0; i < text.length; i++) {
             newText.unshift(text.charAt(i))
         }
         return newText.join("");
