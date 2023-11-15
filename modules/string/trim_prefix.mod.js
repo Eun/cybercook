@@ -1,6 +1,6 @@
 module = {
     name: 'trim white spaces',
-    description: 'trim white spaces on start or end of string',
+    description: 'trim white spaces on start or end of input',
     categories: ['string'],
     properties: [
         {

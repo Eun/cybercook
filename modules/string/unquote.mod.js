@@ -1,6 +1,6 @@
 module = {
     name: 'unquote',
-    description: 'unquote a string',
+    description: 'unquote the input',
     categories: ['string'],
     properties: [],
     run: function (text) {
