@@ -2,11 +2,6 @@
 on:
   push:
 
-permissions:
-  pull-requests: write
-  issues: write
-  repository-projects: write
-
 name: "push"
 jobs:
   build-modules:
@@ -50,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: read
+      pull-requests: write
     steps:
       - uses: release-drafter/release-drafter@v5
         if: github.ref == 'refs/heads/${{github.master_branch}}'
