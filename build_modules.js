@@ -27,6 +27,7 @@ function fromDir(startPath, filter) {
                     name: result.name,
                     categories: result.categories || [],
                     description: result.description || '',
+                    properties: result.properties || [],
                     path: filename,
                 })
             } catch (e) {
