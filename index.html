@@ -16,7 +16,15 @@
                 output: 'output will appear here',
                 modules: [],
                 cookbook: [],
+                crcTable: [],
                 init() {
+                    for(let n =0; n < 256; n++){
+                        c = n;
+                        for(var k =0; k < 8; k++){
+                            c = ((c&1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
+                        }
+                        this.crcTable[n] = c;
+                    }
                     fetch('modules.json')
                     .then(response => {
                         if (!response.ok) alert(`Something went wrong: ${response.status} - ${response.statusText}`)
@@ -24,16 +32,32 @@
                     })
                     .then(data => {
                         this.modules = JSON.parse(data);
+                        for (let i = 0; i < this.modules.length; i++) {
+                            this.modules[i].path_crc32 = this.crc32(this.modules[i].path);
+                        }
+                        this.loadCookbookFromHash(document.location.hash);
                     })
                 },
-                loadModule: function (mod, loaded) {
-                    if (mod.loaded === true) {
-                        loaded();
-                        return;
+
+                crc32(text) {
+                    let crc = 0 ^ (-1);
+                    for (let i = 0; i < text.length; i++ ) {
+                        crc = (crc >>> 8) ^ this.crcTable[(crc ^ text.charCodeAt(i)) & 0xFF];
                     }
-                    fetch(mod.path)
+                    return (crc ^ (-1)) >>> 0;
+                },
+
+                loadModule: function (modIndex) {
+                    return new Promise((resolve, reject) => {
+                        if (this.modules[modIndex].loaded === true) {
+                            resolve();
+                            return;
+                        }
+                        fetch(this.modules[modIndex].path)
                         .then(response => {
-                            if (!response.ok) alert(`Something went wrong: ${response.status} - ${response.statusText}`)
+                            if (!response.ok) {
+                                throw new Error(`Something went wrong: ${response.status} - ${response.statusText}`);
+                            }
                             return response.text()
                         })
                         .then(data => {
@@ -43,14 +67,18 @@
                                     this.modules[i] = {...this.modules[i], ...result};
                                     this.modules[i].loaded = true;
                                     if (result.onload !== undefined) {
-                                        result.onload(loaded);
+                                        result.onload(resolve);
                                         return;
                                     }
-                                    loaded();
+                                    resolve();
                                     return;
                                 }
                             }
                         })
+                        .catch(error => {
+                            reject(error);
+                        })
+                    });
                 },
 
                 deleteModule(mod) {
@@ -63,53 +91,161 @@
                     }
                 },
 
-                addModuleToCookbook(where, modPath) {
-                    const _this = this;
+                indexOfModule(wantMod) {
                     for (let i = 0; i < this.modules.length; i++) {
-                        if (this.modules[i].path === modPath) {
-                            this.loadModule(this.modules[i], function () {
-                                let mod = {
-                                    id: Date.now().toString(),
-                                    name: _this.modules[i].name,
-                                    description: _this.modules[i].description,
-                                    path: _this.modules[i].path,
-                                    properties: [],
-                                    enabled: true,
-                                    run: _this.modules[i].run,
-                                }
+                        if (this.modules[i].path_crc32 === wantMod.path_crc32) {
+                            return i;
+                        }
+                        if (this.modules[i].path === wantMod.path) {
+                            return i;
+                        }
+                    }
+                    return -1;
+                },
 
-                                for (let j = 0; j < _this.modules[i].properties.length; j++) {
-                                    mod.properties.push({
-                                        name: _this.modules[i].properties[j].name,
-                                        type: _this.modules[i].properties[j].type,
-                                        value: _this.modules[i].properties[j].default,
-                                        enabled: _this.modules[i].properties[j].enabled_on_default ?? true,
-                                        optional: _this.modules[i].properties[j].optional ?? false,
-                                    });
-                                }
+                addModuleToCookbook(where, wantMod) {
+                    const modIndex = this.indexOfModule(wantMod);
+                    if (modIndex === -1) {
+                        return;
+                    }
+                    let mod = {
+                        id: Date.now().toString(),
+                        name: this.modules[modIndex].name,
+                        description: this.modules[modIndex].description,
+                        path: this.modules[modIndex].path,
+                        properties: [],
+                        enabled: true,
+                        index: modIndex,
+                    }
 
-                                if (where === 'start') {
-                                    if (_this.cookbook.length === 0) {
-                                        _this.cookbook.push(mod);
-                                        return;
+                    if (wantMod.enabled !== undefined) {
+                        mod.enabled = wantMod.enabled;
+                    }
+
+                    for (let j = 0; j < this.modules[modIndex].properties.length; j++) {
+                        let prop = {
+                            name: this.modules[modIndex].properties[j].name,
+                            type: this.modules[modIndex].properties[j].type,
+                            value: this.modules[modIndex].properties[j].default,
+                            enabled: this.modules[modIndex].properties[j].enabled_on_default ?? true,
+                            optional: this.modules[modIndex].properties[j].optional ?? false,
+                        };
+
+                        const prop_name_crc32 = this.crc32(prop.name);
+
+                        if (wantMod.properties !== undefined) {
+                            for (const wantProp of wantMod.properties) {
+                                if (wantProp.name === prop_name_crc32) {
+                                    if (wantProp.value !== undefined) {
+                                        prop.value = wantProp.value;
                                     }
-                                    _this.cookbook.unshift(mod);
-                                    return;
-                                }
-                                if (where === 'end') {
-                                    _this.cookbook.push(mod);
-                                    return;
-                                }
-
-                                for (let j = 0; j < _this.cookbook.length; j++) {
-                                    if (_this.cookbook[j].id === where) {
-                                        _this.cookbook.splice(j+1, 0, mod);
-                                        return;
+                                    if (wantProp.enabled !== undefined) {
+                                        prop.enabled = wantProp.enabled;
                                     }
+                                    break;
                                 }
+                            }
+                        }
+                        mod.properties.push(prop);
+                    }
 
-                            });
+                    if (where === 'start') {
+                        if (this.cookbook.length === 0) {
+                            this.cookbook.push(mod);
                             return;
+                        }
+                        this.cookbook.unshift(mod);
+                        return;
+                    }
+                    if (where === 'end') {
+                        this.cookbook.push(mod);
+                        return;
+                    }
+
+                    for (let j = 0; j < this.cookbook.length; j++) {
+                        if (this.cookbook[j].id === where) {
+                            this.cookbook.splice(j+1, 0, mod);
+                            return;
+                        }
+                    }
+                },
+               share() {
+                    let data = [this.input];
+                    const cookbookSize = this.cookbook.length;
+                    if (cookbookSize > 0) {
+                        let cookbookItems = [];
+                        for (let i = 0; i < cookbookSize; i++) {
+                            let module = [this.crc32(this.cookbook[i].path), this.cookbook[i].enabled ? 1 : 0];
+                            if (this.cookbook[i].properties.length > 0) {
+                                let moduleProperties = [];
+                                for (let j = 0; j < this.cookbook[i].properties.length; j++) {
+                                    moduleProperties.push([
+                                        this.crc32(this.cookbook[i].properties[j].name),
+                                        this.cookbook[i].properties[j].value,
+                                        this.cookbook[i].properties[j].enabled ? 1 : 0,
+                                    ]);
+                                }
+                                module.push(moduleProperties);
+                            }
+                            cookbookItems.push(module);
+                        }
+                        data.push(cookbookItems);
+                    }
+                    document.location.hash = encodeURI('v1:'+JSON.stringify(data));
+                    navigator.clipboard.writeText(document.location);
+                    alert('share url copied to clipboard');
+                },
+
+                loadCookbookFromHash: function (hash) {
+                    if (hash.startsWith('#')) {
+                        hash = hash.substring(1);
+                    }
+                    if (hash === '') {
+                        return;
+                    }
+                    let data = decodeURI(hash)
+
+                    if (data.startsWith('v1:')) {
+                        return this.loadCookbookFromHashV1(data.substring(3));
+                    }
+                },
+                loadCookbookFromHashV1: function (data) {
+                    let obj = [];
+                    try {
+                        obj = JSON.parse(data)
+                    } catch {
+                        return;
+                    }
+                    if (obj.length >= 1) {
+                        this.input = obj[0];
+                    }
+
+                    if (obj.length >= 2) {
+                        const cookbookData = obj[1];
+                        for (let i = 0; i < cookbookData.length; i++) {
+                            if (cookbookData[i].length < 2) {
+                                continue;
+                            }
+                            let mod = {
+                                path_crc32: cookbookData[i][0],
+                                enabled: cookbookData[i][1] === 1,
+                            };
+                            if (cookbookData[i].length >= 3) {
+                                let properties = [];
+                                for (let j = 0; j < cookbookData[i][2].length; j++) {
+                                    const prop = cookbookData[i][2][j];
+                                    if (prop.length !== 3) {
+                                        continue;
+                                    }
+                                    properties.push({
+                                        name: prop[0],
+                                        value: prop[1],
+                                        enabled: prop[2] === 1,
+                                    })
+                                }
+                                mod['properties'] = properties;
+                            }
+                            this.addModuleToCookbook('end', mod, false);
                         }
                     }
                 },
@@ -124,14 +260,15 @@
                     }
                     return props;
                 },
-                runCookbook: function () {
+                runCookbook: async function () {
                     let text = this.input;
                     for (let i = 0; i < this.cookbook.length; i++) {
                         if (!this.cookbook[i].enabled) {
                             continue;
                         }
                         try {
-                            text = this.cookbook[i].run.apply(this, this.buildProps(text, this.cookbook[i].properties));
+                           await this.loadModule(this.cookbook[i].index)
+                           text = this.modules[this.cookbook[i].index].run.apply(this, this.buildProps(text, this.cookbook[i].properties));
                         } catch (e) {
                             this.output = e.message;
                             return;
@@ -146,7 +283,9 @@
     <body class="w-screen h-screen bg-zinc-400 box-sizing" x-data="data">
     <main class="flex h-full w-full p-2 space-x-2">
         <div class="resize-x overflow-auto w-[20%] p-2 bg-stone-900 text-white">
-            <h1 class="border-b-2 text-2xl cursor-default mb-4">Modules</h1>
+            <div class="flex flex-row border-b-2 text-2xl cursor-default mb-4 text-white pb-2">
+                <div>Modules</div>
+            </div>
             <input type="text" x-model="search" class="bg-stone-500 w-full" placeholder="filter...">
             <template x-for="module in modules">
                 <template x-if="search == '' || module.name.toLowerCase().indexOf(search.toLowerCase()) != -1 || module.categories.find(x => x.toLowerCase().indexOf(search.toLowerCase()) != -1)">
@@ -156,7 +295,7 @@
                         @dragstart.self="
                             dragging = true;
                             event.dataTransfer.effectAllowed='move';
-                            event.dataTransfer.setData('text/plain', module.path);
+                            event.dataTransfer.setData('text/plain', module.path_crc32);
                             "
                         @dragend="dragging = false"
                         x-text="module.name"
@@ -167,14 +306,16 @@
             </template>
         </div>
         <div class="resize-x overflow-auto w-[40%] p-2 flex flex-col bg-stone-900 text-white">
-            <div class="flex flex-row border-b-2 text-2xl cursor-default text-white">
+            <div class="flex flex-row border-b-2 text-2xl cursor-default text-white pb-2">
                 <div>Cookbook</div>
                 <div class="flex flex-row grow justify-end space-x-2">
-                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm" title="Run" @click="runCookbook()">Run ▶</button>
+                    <button class="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded text-xs" title="Clear" @click="cookbook = []">Clear</button>
+                    <button class="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded text-xs" title="Share" @click="share()">Share</button>
+                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-xs" title="Run" @click="runCookbook()">Run ▶</button>
                 </div>
             </div>
 
-            <div class="flex flex-col flex-auto overflow-scroll">
+            <div class="flex flex-col flex-auto overflow-auto">
                 <div
                      class="min-h-[1rem] bg-stone-900 flex items-center"
                      :class="{
@@ -183,7 +324,7 @@
                         'flex-auto': cookbook.length == 0,
                      }"
                      @drop="adding['start'] = false"
-                     @drop.prevent="addModuleToCookbook('start', event.dataTransfer.getData('text/plain'))"
+                     @drop.prevent="addModuleToCookbook('start', {path_crc32: parseInt(event.dataTransfer.getData('text/plain'))}, true)"
                      @dragover.prevent="adding['start'] = true"
                      @dragleave.prevent="adding['start'] = false">
                     <template x-if="cookbook.length == 0">
@@ -238,7 +379,7 @@
                                 'bg-orange-200': dragging,
                             }"
                              @drop="adding[module.id] = false"
-                             @drop.prevent="addModuleToCookbook(module.id, event.dataTransfer.getData('text/plain'))"
+                             @drop.prevent="addModuleToCookbook(module.id, {path_crc32: parseInt(event.dataTransfer.getData('text/plain'))}, true)"
                              @dragover.prevent="adding[module.id] = true"
                              @dragleave.prevent="adding[module.id] = false"></div>
                     </div>
@@ -250,7 +391,7 @@
                             'bg-orange-200': dragging,
                         }"
                     @drop="adding['end'] = false"
-                    @drop.prevent="addModuleToCookbook('end', event.dataTransfer.getData('text/plain'))"
+                    @drop.prevent="addModuleToCookbook('end', {path_crc32: parseInt(event.dataTransfer.getData('text/plain'))}, true)"
                     @dragover.prevent="adding['end'] = true"
                     @dragleave.prevent="adding['end'] = false"></div>
             </div>
@@ -260,15 +401,17 @@
         </div>
         <div class="flex flex-col grow space-y-2">
             <div class="resize-y overflow-auto h-[50%] p-2 bg-stone-900 flex flex-col">
-                <h1 class="border-b-2 text-2xl cursor-default mb-4 text-white">Input</h1>
+                <div class="flex flex-row border-b-2 text-2xl cursor-default mb-4 text-white pb-2">
+                    <div>Input</div>
+                </div>
                 <textarea class="w-full h-full resize-none bg-stone-900 text-white border-none font-mono" x-model="input"></textarea>
             </div>
             <div class="grow bg-stone-900 p-2 flex flex-col">
-                <div class="flex flex-row border-b-2 text-2xl cursor-default mb-4 text-white">
+                <div class="flex flex-row border-b-2 text-2xl cursor-default mb-4 text-white pb-2">
                     <div>Output</div>
                     <div class="flex flex-row grow justify-end space-x-2">
-                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm" title="Copy output to clipboard" @click="navigator.clipboard.writeText(output)">📋</button>
-                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm" title="Replace input with output" @click="input = output">▲</button>
+                        <button class="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded text-xs" title="Copy output to Clipboard" @click="navigator.clipboard.writeText(output)">Copy to Clipboard</button>
+                        <button class="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded text-xs" title="Replace Input with Output" @click="input = output">Replace Input with Output</button>
 
                     </div>
                 </div>
