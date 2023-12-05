@@ -11,7 +11,7 @@ module = {
         {
             name: 'Method',
             type: 'selection',
-            default: '',
+            default: 'GET',
             options: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH', '$input']
         },
         {
@@ -25,6 +25,7 @@ module = {
             type: 'text',
             default: '',
             optional: true,
+            enabled_on_default: false,
         },
         {
             name: 'Headers',
