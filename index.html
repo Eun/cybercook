@@ -129,6 +129,7 @@
                             value: this.modules[modIndex].properties[j].default,
                             enabled: this.modules[modIndex].properties[j].enabled_on_default ?? true,
                             optional: this.modules[modIndex].properties[j].optional ?? false,
+                            options: this.modules[modIndex].properties[j].options ?? [],
                         };
 
                         const prop_name_crc32 = this.crc32(prop.name);
@@ -254,7 +255,11 @@
                     for (let i = 0; i < properties.length; i++) {
                         if (properties[i].optional && !properties[i].enabled) {
                             props.push(undefined);
-                            continue
+                            continue;
+                        }
+                        if (properties[i].value === '$input') {
+                            props.push(text);
+                            continue;
                         }
                         props.push(properties[i].value);
                     }
@@ -268,9 +273,9 @@
                         }
                         try {
                            await this.loadModule(this.cookbook[i].index)
-                           text = this.modules[this.cookbook[i].index].run.apply(this, this.buildProps(text, this.cookbook[i].properties));
+                           text = await this.modules[this.cookbook[i].index].run.apply(this, this.buildProps(text, this.cookbook[i].properties));
                         } catch (e) {
-                            this.output = e.message;
+                            this.output = e;
                             return;
                         }
                     }
@@ -367,6 +372,21 @@
                                                 <label x-text="property.name" :for="id"></label>
                                             </div>
                                             <input type="number" class="bg-stone-500 font-mono w-full" x-model.number="property.value" :disabled="!property.enabled"/>
+                                        </div>
+                                    </template>
+                                    <template x-if="property.type === 'selection'">
+                                        <div class="flex flex-col items-start" x-data="{ id: $id('value') }">
+                                            <div class="flex flex-row items-center">
+                                                <template x-if="property.optional">
+                                                    <input type="checkbox" x-model="property.enabled" class="me-1" :id="id"/>
+                                                </template>
+                                                <label x-text="property.name" :for="id"></label>
+                                            </div>
+                                            <select class="bg-stone-500 font-mono w-full" x-model="property.value" :disabled="!property.enabled">
+                                                <template x-for="option in property.options">
+                                                    <option x-text="option" :value="option" :selected="property.value === option"></option>
+                                                </template>
+                                            </select>
                                         </div>
                                     </template>
                                 </div>
