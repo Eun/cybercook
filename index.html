@@ -109,7 +109,7 @@
                         return;
                     }
                     let mod = {
-                        id: Date.now().toString(),
+                        id: Date.now().toString() + Math.random().toString().slice(2),
                         name: this.modules[modIndex].name,
                         description: this.modules[modIndex].description,
                         path: this.modules[modIndex].path,
@@ -276,6 +276,7 @@
                            text = await this.modules[this.cookbook[i].index].run.apply(this, this.buildProps(text, this.cookbook[i].properties));
                         } catch (e) {
                             this.output = e;
+                            console.error(e);
                             return;
                         }
                     }
