@@ -255,7 +255,11 @@
                     for (let i = 0; i < properties.length; i++) {
                         if (properties[i].optional && !properties[i].enabled) {
                             props.push(undefined);
-                            continue
+                            continue;
+                        }
+                        if (properties[i].value === '$input') {
+                            props.push(text);
+                            continue;
                         }
                         props.push(properties[i].value);
                     }
