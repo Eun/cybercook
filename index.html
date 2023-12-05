@@ -109,7 +109,7 @@
                         return;
                     }
                     let mod = {
-                        id: Date.now().toString() + Math.random().toString().slice(2),
+                        id: Date.now().toString() + Math.random().toString().slice(2) + this.modules[modIndex].path_crc32,
                         name: this.modules[modIndex].name,
                         description: this.modules[modIndex].description,
                         path: this.modules[modIndex].path,
