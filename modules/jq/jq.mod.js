@@ -18,7 +18,7 @@ module = {
         }
         document.body.append(script);
     },
-    run: function (text, expr) {
-        return jq.raw(text, expr);
+    run: async function (text, expr) {
+        return await jq.promised.raw(text, expr)
     }
 }
