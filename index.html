@@ -17,6 +17,7 @@
                 modules: [],
                 cookbook: [],
                 crcTable: [],
+                executionTime: 0,
                 init() {
                     for(let n =0; n < 256; n++){
                         c = n;
@@ -116,6 +117,7 @@
                         properties: [],
                         enabled: true,
                         index: modIndex,
+                        running: false
                     }
 
                     if (wantMod.enabled !== undefined) {
@@ -266,27 +268,35 @@
                     return props;
                 },
                 runCookbook: async function () {
+                    const start = Date.now();
                     let text = this.input;
+                    for (let i = 0; i < this.cookbook.length; i++) {
+                        this.cookbook[i].running = false;
+                    }
                     for (let i = 0; i < this.cookbook.length; i++) {
                         if (!this.cookbook[i].enabled) {
                             continue;
                         }
                         try {
+                           this.cookbook[i].running = true;
                            await this.loadModule(this.cookbook[i].index)
                            text = await this.modules[this.cookbook[i].index].run.apply(this, this.buildProps(text, this.cookbook[i].properties));
                         } catch (e) {
-                            this.output = e;
+                            text = e;
                             console.error(e);
-                            return;
+                            break;
                         }
+                        this.cookbook[i].running = false;
                     }
+                    const end = Date.now();
+                    this.executionTime = end - start;
                     this.output = text;
                 },
             }));
         });
     </script>
 </head>
-    <body class="w-screen h-screen bg-zinc-400 box-sizing" x-data="data">
+    <body class="w-screen h-screen bg-zinc-400 accent-blue-500 box-sizing" x-data="data">
     <main class="flex h-full w-full p-2 space-x-2">
         <div class="resize-x overflow-auto w-[20%] p-2 bg-stone-900 text-white">
             <div class="flex flex-row border-b-2 text-2xl cursor-default mb-4 text-white pb-2">
@@ -339,7 +349,7 @@
                 </div>
                 <template x-for="module in cookbook">
                     <div class="flex flex-col odd:bg-stone-700 even:bg-stone-600">
-                        <div class="space-y-2 p-2">
+                        <div class="space-y-2 p-2 border-2 border-transparent" :class="{'border-blue-700': module.running}">
                             <div class="text-lg flex flex-row">
                                 <div class="grow" x-text="module.name" :title="module.description"></div>
                                 <input type="checkbox" x-model="module.enabled"/>
@@ -433,11 +443,17 @@
                     <div class="flex flex-row grow justify-end space-x-2">
                         <button class="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded text-xs" title="Copy output to Clipboard" @click="navigator.clipboard.writeText(output)">Copy to Clipboard</button>
                         <button class="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded text-xs" title="Replace Input with Output" @click="input = output">Replace Input with Output</button>
-
                     </div>
                 </div>
                 <textarea class="w-full h-full resize-none bg-stone-900 text-white border-none font-mono" x-model="output"></textarea>
-           </div>
+                <div class="flex flex-row border-t-2 text-sm cursor-default mt-4 text-white pt-2">
+                    <div class="flex flex-row grow justify-end space-x-2">
+                        <div>
+                            <span x-text="executionTime"></span><span>ms</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
        </div>
    </main>
    </body>
