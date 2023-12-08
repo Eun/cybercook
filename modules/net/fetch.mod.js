@@ -12,7 +12,7 @@ module = {
             name: 'Method',
             type: 'selection',
             default: 'GET',
-            options: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH', '$input']
+            options: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH']
         },
         {
             name: 'CORS',
