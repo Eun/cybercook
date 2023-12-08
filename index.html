@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>cybercook</title>
+    <style>html,body{font-family:Open Sans ,MundoSans ,"Helvetica Neue" ,Arial ,Helvetica ,sans-serif;text-rendering:optimizeLegibility;font-feature-settings:"liga" ,"dlig"}</style>
     <script src="alpinejs.3.13.2.js" defer></script>
     <script src="tailwindcss.3.3.5.js" defer></script>
     <script>
@@ -19,6 +20,7 @@
                 crcTable: [],
                 executionTime: 0,
                 init() {
+                    window.__cybercook_variables = {};
                     for(let n =0; n < 256; n++){
                         c = n;
                         for(var k =0; k < 8; k++){
@@ -259,15 +261,43 @@
                             props.push(undefined);
                             continue;
                         }
-                        if (properties[i].value === '$input') {
-                            props.push(text);
-                            continue;
+                        if (properties[i].value.length > 1 && properties[i].value.startsWith('$')) {
+                            const variableName = properties[i].value.substring(1)
+                            if (variableName === 'input') {
+                                props.push(text);
+                                continue;
+                            }
+                            let setVariable = false;
+                            for (const v in window.__cybercook_variables) {
+                                if (variableName === v) {
+                                    setVariable = true;
+                                    let value = window.__cybercook_variables[v];
+                                    if (properties[i].type === 'boolean') {
+                                        const lowerValue = value.toLowerCase();
+                                        if (lowerValue === 'true' || lowerValue === '1') {
+                                            props.push(true);
+                                        } else {
+                                            props.push(false);
+                                        }
+                                    } else if (properties[i].type === 'number') {
+                                        props.push(Number.parseInt(value))
+                                    } else {
+                                        props.push(value);
+                                    }
+                                    break;
+                                }
+                            }
+                            if (setVariable) {
+                                continue;
+                            }
+
                         }
                         props.push(properties[i].value);
                     }
                     return props;
                 },
                 runCookbook: async function () {
+                    window.__cybercook_variables = {};
                     const start = Date.now();
                     let text = this.input;
                     for (let i = 0; i < this.cookbook.length; i++) {
@@ -292,6 +322,12 @@
                     this.executionTime = end - start;
                     this.output = text;
                 },
+                isVariable: function (v) {
+                    if (typeof v === 'string' || v instanceof String) {
+                        return v.startsWith('$');
+                    }
+                    return false;
+                }
             }));
         });
     </script>
@@ -348,58 +384,48 @@
                     </template>
                 </div>
                 <template x-for="module in cookbook">
-                    <div class="flex flex-col odd:bg-stone-700 even:bg-stone-600">
+                    <div class="flex flex-col odd:bg-stone-700 even:bg-stone-600" :class="{'opacity-70': !module.enabled}">
                         <div class="space-y-2 p-2 border-2 border-transparent" :class="{'border-blue-700': module.running}">
                             <div class="text-lg flex flex-row">
                                 <div class="grow" x-text="module.name" :title="module.description"></div>
-                                <input type="checkbox" x-model="module.enabled"/>
-                                <button @click="deleteModule(module)">Delete</button>
+                                <input type="checkbox" class="mx-2" x-model="module.enabled"/>
+                                <button class="bg-red-600 hover:bg-red-700 text-white py-1 px-2 text-xs font-bold rounded cursor-pointer" @click="deleteModule(module)">Delete</button>
                             </div>
                             <template x-for="property in module.properties">
                                 <div>
-                                    <template x-if="property.type === 'boolean'">
-                                        <div class="flex flex-row space-x-1 items-center" x-data="{ id: $id('value') }">
-                                            <input type="checkbox" x-model="property.value" :id="id"/>
+                                    <div class="flex flex-col" x-data="{ id: $id('value'), use_variable: false }" x-init="use_variable = isVariable(property.value)">
+                                        <div class="flex flex-row items-center">
                                             <label x-text="property.name" :for="id"></label>
-                                        </div>
-                                    </template>
-                                    <template x-if="property.type === 'text'">
-                                        <div class="flex flex-col items-start" x-data="{ id: $id('value') }">
-                                            <div class="flex flex-row items-center">
+                                            <div class="flex flex-row grow justify-end space-x-2">
                                                 <template x-if="property.optional">
-                                                    <input type="checkbox" x-model="property.enabled" class="me-1" :id="id"/>
+                                                    <input type="checkbox" x-model="property.enabled" :id="id"/>
                                                 </template>
-                                                <label x-text="property.name" :for="id"></label>
+                                                <button class="hover:bg-blue-700 text-white py-1 px-2 text-xs font-bold rounded cursor-pointer" :class="{'bg-stone-800': !use_variable, 'bg-blue-700': use_variable}" @click="use_variable = !use_variable">$</button>
                                             </div>
-                                            <textarea class="bg-stone-500 font-mono w-full" x-model="property.value" :disabled="!property.enabled"></textarea>
                                         </div>
-                                    </template>
-                                    <template x-if="property.type === 'number'">
-                                        <div class="flex flex-col items-start" x-data="{ id: $id('value') }">
-                                            <div class="flex flex-row items-center">
-                                                <template x-if="property.optional">
-                                                    <input type="checkbox" x-model="property.enabled" class="me-1" :id="id"/>
+                                        <template x-if="use_variable && property.enabled">
+                                            <input type="text" class="bg-stone-500 font-mono w-full" x-model="property.value" :disabled="!property.enabled">
+                                        </template>
+                                        <template x-if="use_variable == false && property.enabled">
+                                            <div>
+                                                <template x-if="property.type === 'boolean'">
+                                                    <input type="checkbox" x-model="property.value" :id="id"/>
                                                 </template>
-                                                <label x-text="property.name" :for="id"></label>
+                                                <template x-if="property.type === 'text'">
+                                                    <textarea class="bg-stone-500 font-mono w-full" x-model="property.value" :disabled="!property.enabled"></textarea>
+                                                </template>
+                                                <template x-if="property.type === 'number'">
+                                                    <input type="number" class="bg-stone-500 font-mono w-full" x-model.number="property.value" :disabled="!property.enabled"/>
+                                                </template>
+                                                <template x-if="property.type === 'selection'">
+                                                    <select class="bg-stone-500 font-mono w-full" x-model="property.value" :disabled="!property.enabled">
+                                                        <template x-for="option in property.options">
+                                                            <option x-text="option" :value="option" :selected="property.value === option"></option>
+                                                        </template>
+                                                    </select>
+                                                </template>
                                             </div>
-                                            <input type="number" class="bg-stone-500 font-mono w-full" x-model.number="property.value" :disabled="!property.enabled"/>
-                                        </div>
-                                    </template>
-                                    <template x-if="property.type === 'selection'">
-                                        <div class="flex flex-col items-start" x-data="{ id: $id('value') }">
-                                            <div class="flex flex-row items-center">
-                                                <template x-if="property.optional">
-                                                    <input type="checkbox" x-model="property.enabled" class="me-1" :id="id"/>
-                                                </template>
-                                                <label x-text="property.name" :for="id"></label>
-                                            </div>
-                                            <select class="bg-stone-500 font-mono w-full" x-model="property.value" :disabled="!property.enabled">
-                                                <template x-for="option in property.options">
-                                                    <option x-text="option" :value="option" :selected="property.value === option"></option>
-                                                </template>
-                                            </select>
-                                        </div>
-                                    </template>
+                                        </template>
                                 </div>
                             </template>
                         </div>
