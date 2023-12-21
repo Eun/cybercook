@@ -14,7 +14,7 @@ module = {
             default: 'Hello World'
         },
     ],
-    run: function (str, variableName, variableValue) {
+    run: async function (str, variableName, variableValue) {
         if (variableName === undefined || variableName === '') {
             throw "variable cannot be empty"
         }

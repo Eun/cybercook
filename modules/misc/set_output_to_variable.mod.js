@@ -9,7 +9,7 @@ module = {
             default: 'var1'
         },
     ],
-    run: function (str, variableName) {
+    run: async function (str, variableName) {
         if (variableName === undefined || variableName === '') {
             throw "variable cannot be empty"
         }

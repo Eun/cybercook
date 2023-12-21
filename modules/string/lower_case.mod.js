@@ -3,7 +3,7 @@ module = {
     description: 'convert text to lower case',
     categories: ['string'],
     properties: [],
-    run: function (text) {
+    run: async function (text) {
         return text.toLowerCase();
     }
 }

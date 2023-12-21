@@ -3,7 +3,7 @@ module = {
     description: 'convert input to upper case',
     categories: ['string'],
     properties: [],
-    run: function (text) {
+    run: async function (text) {
         return text.toUpperCase();
     }
 }

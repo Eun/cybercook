@@ -3,7 +3,7 @@ module = {
     description: 'base64 encode a string',
     categories: ['string'],
     properties: [],
-    run: function (text) {
+    run: async function (text) {
         return btoa(text);
     }
 }

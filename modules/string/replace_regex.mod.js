@@ -19,7 +19,7 @@ module = {
             default: 'New $1'
         },
     ],
-    run: function (text, search, flags, replace) {
+    run: async function (text, search, flags, replace) {
         const re = new RegExp(search, flags)
         return text.replace(re, replace);
     }

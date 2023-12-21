@@ -3,7 +3,7 @@ module = {
     description: 'dump all known variables',
     categories: ['misc'],
     properties: [],
-    run: function (str) {
+    run: async function (str) {
         return JSON.stringify(window.__cybercook_variables);
     }
 }

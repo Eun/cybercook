@@ -17,7 +17,7 @@ module = {
             resolve();
         });
     },
-    run: function (text) {
+    run: async function (text) {
         let crc = 0 ^ (-1);
         for (let i = 0; i < text.length; i++ ) {
             crc = (crc >>> 8) ^ window.crcTable[(crc ^ text.charCodeAt(i)) & 0xFF];

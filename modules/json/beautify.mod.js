@@ -9,7 +9,7 @@ module = {
             default: '2'
         }
     ],
-    run: function (text, space) {
+    run: async function (text, space) {
         return JSON.stringify(JSON.parse(text), null, parseInt(space));
     }
 }

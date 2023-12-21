@@ -3,7 +3,7 @@ module = {
     description: 'hash with md5',
     categories: ['hash', 'md5'],
     properties: [],
-    run: function (inputString){
+    run: async function (inputString){
         var hc="0123456789abcdef";
         function rh(n) {var j,s="";for(j=0;j<=3;j++) s+=hc.charAt((n>>(j*8+4))&0x0F)+hc.charAt((n>>(j*8))&0x0F);return s;}
         function ad(x,y) {var l=(x&0xFFFF)+(y&0xFFFF);var m=(x>>16)+(y>>16)+(l>>16);return (m<<16)|(l&0xFFFF);}

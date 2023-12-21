@@ -9,7 +9,7 @@ module = {
             default: ''
         },
     ],
-    run: function (text, suffix) {
+    run: async function (text, suffix) {
         return text + suffix;
     }
 }

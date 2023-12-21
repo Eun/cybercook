@@ -16,7 +16,7 @@ module = {
             default: 1000
         },
     ],
-    run: function (text, start, end) {
+    run: async function (text, start, end) {
         return text.substring(start, end);
     }
 }

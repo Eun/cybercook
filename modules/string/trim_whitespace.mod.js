@@ -19,7 +19,7 @@ module = {
             default: true,
         },
     ],
-    run: function (text, start, end, every_line) {
+    run: async function (text, start, end, every_line) {
         if (every_line) {
             text = text.split("\n").map(x => {
                 if (start && end) {
