@@ -3,7 +3,7 @@ module = {
     description: 'hash with crc16',
     categories: ['hash', 'crc16'],
     properties: [],
-    run: function (text){
+    run: async function (text){
         var crc = 0xFFFF;
         var odd;
 

@@ -3,7 +3,7 @@ module = {
     description: 'url encode an string',
     categories: ['string', 'url'],
     properties: [],
-    run: function (text) {
+    run: async function (text) {
         return encodeURI(text);
     }
 }

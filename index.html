@@ -70,7 +70,11 @@
                                     this.modules[i] = {...this.modules[i], ...result};
                                     this.modules[i].loaded = true;
                                     if (result.onload !== undefined) {
-                                        result.onload(resolve);
+                                        result.onload(resolve).
+                                            then(resolve).
+                                            catch(error => {
+                                                reject(error);
+                                            });
                                         return;
                                     }
                                     resolve();
@@ -309,7 +313,7 @@
                         }
                         try {
                            this.cookbook[i].running = true;
-                           await this.loadModule(this.cookbook[i].index)
+                           await this.loadModule(this.cookbook[i].index);
                            text = await this.modules[this.cookbook[i].index].run.apply(this, this.buildProps(text, this.cookbook[i].properties));
                         } catch (e) {
                             text = e;

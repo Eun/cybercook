@@ -14,7 +14,7 @@ module = {
             default: 'New'
         },
     ],
-    run: function (text, search, replace) {
+    run: async function (text, search, replace) {
         return text.replaceAll(search, replace);
     }
 }

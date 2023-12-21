@@ -24,7 +24,7 @@ module = {
             default: '',
         },
     ],
-    run: function (text, start, end, every_line, chars) {
+    run: async function (text, start, end, every_line, chars) {
         const trimLeft = function (s) {
             for (let i = 0; i < s.length; i++) {
                 const char = s.charAt(i);

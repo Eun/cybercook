@@ -9,7 +9,7 @@ module = {
             default: ''
         },
     ],
-    run: function (text, prefix) {
+    run: async function (text, prefix) {
         return prefix + text.replaceAll("\n", "\n" + prefix);
     }
 }

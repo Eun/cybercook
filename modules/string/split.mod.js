@@ -14,7 +14,7 @@ module = {
             default: '.'
         },
     ],
-    run: function (text, split_delimiter, join_delimiter) {
+    run: async function (text, split_delimiter, join_delimiter) {
         return text.split(split_delimiter).join(join_delimiter);
     }
 }

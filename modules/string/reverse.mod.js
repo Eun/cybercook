@@ -3,7 +3,7 @@ module = {
     description: 'reverse the text',
     categories: ['string'],
     properties: [],
-    run: function (text) {
+    run: async function (text) {
         let newText = []
         for (let i = 0; i < text.length; i++) {
             newText.unshift(text.charAt(i))

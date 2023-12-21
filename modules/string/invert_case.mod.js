@@ -3,7 +3,7 @@ module = {
     description: 'invert the case of a string',
     categories: ['string'],
     properties: [],
-    run: function (str) {
+    run: async function (str) {
         for (var i = 0; i < str.length; i++) {
             var char = str.charAt(i);
             if (char === char.toUpperCase()) {

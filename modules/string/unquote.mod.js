@@ -3,7 +3,7 @@ module = {
     description: 'unquote the input',
     categories: ['string'],
     properties: [],
-    run: function (text) {
+    run: async function (text) {
         return JSON.parse(text);
     }
 }
