@@ -9,16 +9,22 @@ module = {
             default: '.'
         },
     ],
-    onload: function (done) {
-        const script = document.createElement('script');
-        script.src = 'modules/jq/jq.wasm.js';
-        script.onload = script.onreadystatechange = function(){
-            script.onreadystatechange = script.onload = null;
-            done();
-        }
-        document.body.append(script);
+    onload: async function() {
+        return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = 'modules/jq/jq.wasm.js';
+
+            script.onload = script.onreadystatechange = function() {
+                script.onreadystatechange = script.onload = null;
+                resolve();
+            };
+
+            document.body.append(script);
+        });
     },
     run: async function (text, expr) {
-        return await jq.promised.raw(text, expr)
+        const result = await jq.promised.raw(text, expr);
+        console.log(result);
+        return result;
     }
 }
