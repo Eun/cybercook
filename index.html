@@ -258,6 +258,59 @@
                         }
                     }
                 },
+                decodeBackslashWords: function(prop, input) {
+                    if (typeof input === 'string' || input instanceof String) {
+                        return input.replace(/\\(\w+)/g, function(match, word) {
+                            switch (word) {
+                                case "n":
+                                    return "\n";
+                                case "r":
+                                    return "\r";
+                                case "t":
+                                    return "\t";
+                                case "\\":
+                                    return "\\";
+                                default:
+                                    return match;
+                            }
+                        });
+                    }
+                    return input;
+                },
+
+                lookupVariable: function (prop, text) {
+                    if (!this.isVariable(prop.value)) {
+                        return undefined;
+                    }
+                    if (prop.value.length < 1 || !prop.value.startsWith('$')) {
+                        return undefined;
+                    }
+                    const variableName = prop.value.substring(1);
+                    if (variableName === 'input') {
+                        return text;
+                    }
+                    for (const v in window.__cybercook_variables) {
+                        if (variableName === v) {
+                            let value = window.__cybercook_variables[v];
+                            if (prop.type === 'boolean') {
+                                const lowerValue = value.toLowerCase();
+                                return lowerValue === 'true' || lowerValue === '1';
+                            } else if (prop.type === 'number') {
+                                return Number.parseInt(value);
+                            } else {
+                                return value;
+                            }
+                        }
+                    }
+                    return undefined;
+                },
+                buildParameterValue: function (prop, text) {
+                    let value = this.lookupVariable(prop, text);
+                    if (value !== undefined) {
+                        return value;
+                    }
+                    return this.decodeBackslashWords(prop, prop.value);
+                },
                 buildProps: function (text, properties) {
                     const props = [text];
                     for (let i = 0; i < properties.length; i++) {
@@ -265,38 +318,7 @@
                             props.push(undefined);
                             continue;
                         }
-                        if (properties[i].value.length > 1 && properties[i].value.startsWith('$')) {
-                            const variableName = properties[i].value.substring(1)
-                            if (variableName === 'input') {
-                                props.push(text);
-                                continue;
-                            }
-                            let setVariable = false;
-                            for (const v in window.__cybercook_variables) {
-                                if (variableName === v) {
-                                    setVariable = true;
-                                    let value = window.__cybercook_variables[v];
-                                    if (properties[i].type === 'boolean') {
-                                        const lowerValue = value.toLowerCase();
-                                        if (lowerValue === 'true' || lowerValue === '1') {
-                                            props.push(true);
-                                        } else {
-                                            props.push(false);
-                                        }
-                                    } else if (properties[i].type === 'number') {
-                                        props.push(Number.parseInt(value))
-                                    } else {
-                                        props.push(value);
-                                    }
-                                    break;
-                                }
-                            }
-                            if (setVariable) {
-                                continue;
-                            }
-
-                        }
-                        props.push(properties[i].value);
+                        props.push(this.buildParameterValue(properties[i]));
                     }
                     return props;
                 },
