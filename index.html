@@ -19,6 +19,9 @@
                 cookbook: [],
                 crcTable: [],
                 executionTime: 0,
+                countedChars: 0,
+                countedWords: 0,
+                countedLines: 0,
                 init() {
                     window.__cybercook_variables = {};
                     for(let n =0; n < 256; n++){
@@ -347,6 +350,13 @@
                     const end = Date.now();
                     this.executionTime = end - start;
                     this.output = text;
+                    this.countedChars = text.length;
+                    this.countedWords = text.trim().split(/\s+/).length;
+                    if (text.trim() === "") {
+                        this.countedLines = text.split("\n").length;
+                    } else {
+                        this.countedLines = text.split("\n").length;
+                    }
                 },
                 isVariable: function (v) {
                     if (typeof v === 'string' || v instanceof String) {
@@ -499,8 +509,24 @@
                 </div>
                 <textarea class="w-full h-full resize-none bg-stone-900 text-white border-none font-mono" x-model="output"></textarea>
                 <div class="flex flex-row border-t-2 text-sm cursor-default mt-4 text-white pt-2">
-                    <div class="flex flex-row grow justify-end space-x-2">
+                    <div class="flex flex-row grow space-x-2">
                         <div>
+                            <span x-text="countedChars"></span><span> </span>
+                            <template x-if="countedChars == 1"><span>Char</span></template>
+                            <template x-if="countedChars != 1"><span>Chars</span></template>
+                        </div>
+                        <div>
+                            <span x-text="countedWords"></span><span> </span>
+                            <template x-if="countedWords == 1"><span>Word</span></template>
+                            <template x-if="countedWords != 1"><span>Words</span></template>
+                        </div>
+                        <div>
+
+                            <span x-text="countedLines"></span><span> </span>
+                            <template x-if="countedLines == 1"><span>Line</span></template>
+                            <template x-if="countedLines != 1"><span>Lines</span></template>
+                        </div>
+                        <div class="grow text-end">
                             <span x-text="executionTime"></span><span>ms</span>
                         </div>
                     </div>
