@@ -4,6 +4,6 @@ module = {
     categories: ['string', 'url'],
     properties: [],
     run: async function (text) {
-        return decodeURI(text);
+        return decodeURIComponent(text);
     }
 }
