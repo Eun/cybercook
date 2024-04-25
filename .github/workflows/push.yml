@@ -12,7 +12,7 @@ jobs:
     steps:
       -
         name: Checkout Code
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.4
       -
         name: Regenerate modules.json
         run: node build_modules.js
