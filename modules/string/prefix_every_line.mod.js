@@ -1,7 +1,7 @@
 module = {
     name: 'prefix every line',
     description: 'prefix every line in a string',
-    categories: ['string'],
+    categories: ['string', 'every_line'],
     properties: [
         {
             name: 'Prefix',

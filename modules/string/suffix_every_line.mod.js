@@ -1,7 +1,7 @@
 module = {
     name: 'suffix every line',
     description: 'suffix every line in the input',
-    categories: ['string'],
+    categories: ['string', 'every_line'],
     properties: [
         {
             name: 'Suffix',
